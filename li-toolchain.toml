@@ -1,0 +1,6 @@
+[toolchain]
+lic_repo = "https://github.com/li-langverse/li-language"
+lic_version = "0.1.0"
+
+[coverage]
+min_coverage = 80

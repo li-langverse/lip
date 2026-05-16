@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout li-language
+        uses: actions/checkout@v4
+        with:
+          repository: li-langverse/li-language
+          path: li-language
+          # Fallback for pre-transfer: cap-jmk-real/li-language
+          # ref: main
+
+      - name: Install LLVM 18
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build clang-18 llvm-18-dev
+
+      - name: Build lic and bootstrap lip/lit
+        env:
+          LLVM_DIR: /usr/lib/llvm-18/lib/cmake/llvm
+          CC: clang-18
+          CXX: clang++-18
+          LI_REPO: ${{ github.workspace }}/li-language
+        run: |
+          chmod +x scripts/ci.sh
+          ./scripts/ci.sh
