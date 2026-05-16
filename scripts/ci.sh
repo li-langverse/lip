@@ -18,14 +18,17 @@ if [[ -z "$LLVM_DIR" ]] && command -v brew >/dev/null 2>&1; then
 fi
 (cd "$LI_REPO" && ./scripts/build.sh)
 export LIC="$LI_REPO/build/compiler/lic/lic"
+export LI_REPO LI_REPO_ROOT="$LI_REPO"
 mkdir -p "$ROOT/build"
-chmod +x "$ROOT/scripts/bootstrap_lip.sh" "$ROOT/scripts/bootstrap_lit.sh"
-export LI_REPO
-"$ROOT/scripts/bootstrap_lip.sh"
-"$ROOT/scripts/bootstrap_lit.sh"
-chmod +x "$ROOT/scripts/lip" "$ROOT/scripts/lip-integration.sh"
+chmod +x "$ROOT/scripts/"*.sh
 if [[ -x "$ROOT/../lit/scripts/lit" ]]; then
   export PATH="$ROOT/../lit/scripts:$PATH"
 fi
 "$ROOT/scripts/lip-integration.sh"
+if [[ "${LIP_BOOTSTRAP_LI:-}" == "1" ]]; then
+  "$ROOT/scripts/bootstrap_lip.sh"
+  "$ROOT/scripts/bootstrap_lit.sh"
+else
+  echo "ci: skip Li bootstrap (set LIP_BOOTSTRAP_LI=1 to build lip/lit main.li)"
+fi
 echo "ci: ok"
