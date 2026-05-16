@@ -22,7 +22,8 @@ jobs:
         with:
           repository: li-langverse/lic
           path: lic
-          ref: main
+          # TODO: revert to main after li-langverse/lic#4 merges
+          ref: fix/typecheck-ctx-init
 
       - name: Install LLVM 18
         run: |
