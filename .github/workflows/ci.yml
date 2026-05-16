@@ -10,15 +10,15 @@ jobs:
   bootstrap:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: li-langverse/lit
           path: lit
           ref: main
       - name: Checkout lic
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: li-langverse/lic
           path: lic
