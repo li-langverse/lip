@@ -16,7 +16,8 @@ lip — Li package manager
   lip update
   lip tree
   lip lock [--out FILE]
-  lip publish [--dry-run] [--registry PATH]
+  lip publish [--dry-run] [--github | --registry PATH]
+  lip publish defaults to --github when [package.repository].url is set
   lip --version
 EOF
 }
@@ -112,8 +113,33 @@ t = t.rstrip() + f'\n{name} = {{ path = "{path}" }}\n'
 p.write_text(t)
 PY
       echo "lip add: $name -> $p"
+    elif [[ "$spec" == git=* ]]; then
+      url="${spec#git=}"
+      tag=""
+      shift
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --tag) tag="$2"; shift 2 ;;
+          *) echo "lip add: unknown $1" >&2; exit 1 ;;
+        esac
+      done
+      python3 - "$pkg/li.toml" "$name" "$url" "$tag" <<'PY'
+import pathlib, re, sys
+p, name, url, tag = pathlib.Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4]
+t = p.read_text() if p.exists() else ""
+if "[dependencies]" not in t:
+    t += "\n[dependencies]\n"
+t = re.sub(rf'(?m)^{re.escape(name)}\s*=.*\n', '', t)
+line = f'{name} = {{ git = "{url}"'
+if tag:
+    line += f', tag = "{tag}"'
+line += " }\n"
+t = t.rstrip() + "\n" + line
+p.write_text(t)
+PY
+      echo "lip add: $name -> git $url${tag:+ @ $tag}"
     else
-      echo "lip add: only path= supported in v1" >&2
+      echo "lip add: use path=DIR or git=URL [--tag TAG]" >&2
       exit 1
     fi
     ;;
@@ -185,48 +211,86 @@ PY
   publish)
     shift
     dry=false
+    mode=""
     reg="$ROOT/registry"
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --dry-run) dry=true; shift ;;
-        --registry) reg="${2:?}"; shift 2 ;;
+        --github) mode=github; shift ;;
+        --registry) mode=registry; reg="${2:?}"; shift 2 ;;
         *) echo "lip publish: unknown $1" >&2; exit 1 ;;
       esac
     done
     pkg="$(pkg_dir)"
     lic="$(lip_find_lic "$ROOT")"
     lit="$(lip_find_lit "$ROOT")"
+  toml="$pkg/li.toml"
+    repo_url="$(python3 -c "
+import re
+t=open('$toml').read()
+m=re.search(r'\\[package\\.repository\\].*?url\\s*=\\s*\"([^\"]+)\"', t, re.S)
+print(m.group(1) if m else '')
+")"
+    if [[ -z "$mode" ]]; then
+      if [[ -n "$repo_url" ]]; then
+        mode=github
+      else
+        mode=registry
+      fi
+    fi
     "$0" lock
-    min="$(python3 -c "import re; t=open('$pkg/li.toml').read(); m=re.search(r'min_coverage\s*=\s*(\d+)', t); print(m.group(1) if m else 80)")"
     if [[ -n "$lit" ]]; then
       (cd "$pkg" && "$lit" test --coverage) || { echo "lip publish: coverage gate failed" >&2; exit 1; }
     fi
     "$lic" build "$pkg/src/lib.li" -o /dev/null
+    name="$(python3 -c "import re; t=open('$toml').read(); m=re.search(r'name\\s*=\\s*\"([^\"]+)\"', t); print(m.group(1))")"
+    ver="$(python3 -c "import re; t=open('$toml').read(); m=re.search(r'version\\s*=\\s*\"([^\"]+)\"', t); print(m.group(1))")"
+    tree="$(lip_tree_digest "$pkg")"
+    proof="$(lip_proof_digest "$lic" "$pkg")"
+    cov="$(cat "$pkg/.lit/coverage_pct.txt" 2>/dev/null || echo 0)"
+    tag="v${ver}"
+    if [[ "$mode" == github ]]; then
+      if [[ -z "$repo_url" ]]; then
+        echo "lip publish --github: set [package.repository].url in li.toml" >&2
+        exit 1
+      fi
+      if [[ "$dry" == true ]]; then
+        echo "lip publish: dry-run ok (github $repo_url @ $tag)"
+        exit 0
+      fi
+      gh_slug="$(python3 -c "u='$repo_url'.rstrip('/'); print(u.split('github.com/')[-1] if 'github.com/' in u else '')")"
+      if [[ -n "$gh_slug" ]] && command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+        if ! gh release view "$tag" -R "$gh_slug" >/dev/null 2>&1; then
+          notes="Li package ${name} ${ver} (tree sha256:${tree})"
+          gh release create "$tag" -R "$gh_slug" --title "${name} ${ver}" --notes "$notes" || true
+        fi
+      fi
+      reg="$ROOT/registry"
+    fi
     if [[ "$dry" == true ]]; then
       echo "lip publish: dry-run ok"
       exit 0
     fi
     mkdir -p "$reg/packages"
-    name="$(python3 -c "import re; t=open('$pkg/li.toml').read(); m=re.search(r'name\s*=\s*\"([^\"]+)\"', t); print(m.group(1))")"
-    ver="$(python3 -c "import re; t=open('$pkg/li.toml').read(); m=re.search(r'version\s*=\s*\"([^\"]+)\"', t); print(m.group(1))")"
-    tree="$(lip_tree_digest "$pkg")"
-    proof="$(lip_proof_digest "$lic" "$pkg")"
-    cov="$(cat "$pkg/.lit/coverage_pct.txt" 2>/dev/null || echo 0)"
-    python3 - "$reg/index.json" "$name" "$ver" "$tree" "$proof" "$cov" <<'PY'
+    python3 - "$reg/index.json" "$name" "$ver" "$tree" "$proof" "$cov" "$mode" "$repo_url" "$tag" <<'PY'
 import json, pathlib, sys
-idx, name, ver, tree, proof, cov = sys.argv[1:7]
+idx, name, ver, tree, proof, cov, mode, repo_url, tag = sys.argv[1:10]
 p = pathlib.Path(idx)
 data = json.loads(p.read_text()) if p.exists() else {"packages": []}
-data["packages"] = [x for x in data["packages"] if not (x.get("name")==name and x.get("version")==ver)]
-data["packages"].append({
+entry = {
     "name": name, "version": ver,
     "tree_digest": f"sha256:{tree}",
     "proof_digest": proof,
     "coverage_pct": float(cov),
-})
+}
+if mode == "github" and repo_url:
+    entry["source"] = {"type": "git", "url": repo_url, "tag": tag}
+data["packages"] = [x for x in data["packages"] if not (x.get("name")==name and x.get("version")==ver)]
+data["packages"].append(entry)
 p.parent.mkdir(parents=True, exist_ok=True)
 p.write_text(json.dumps(data, indent=2) + "\n")
-print(f"lip publish: indexed {name}@{ver}")
+src = f" git {repo_url}@{tag}" if mode == "github" else ""
+print(f"lip publish: indexed {name}@{ver}{src}")
 PY
     ;;
   *)
