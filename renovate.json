@@ -5,14 +5,14 @@
   "regexManagers": [
     {
       "description": "lic_version in li-toolchain.toml",
-      "fileMatch": ["^li-toolchain\\.toml$"],
+      "fileMatch": ["(^|/)li-toolchain\\.toml$"],
       "matchStrings": ["lic_version\\s*=\\s*\"(?<currentValue>[^\"]+)\""],
       "depNameTemplate": "li-langverse/lic",
       "datasourceTemplate": "github-releases"
     },
     {
       "description": "lit_version in li-toolchain.toml",
-      "fileMatch": ["^li-toolchain\\.toml$"],
+      "fileMatch": ["(^|/)li-toolchain\\.toml$"],
       "matchStrings": ["lit_version\\s*=\\s*\"(?<currentValue>[^\"]+)\""],
       "depNameTemplate": "li-langverse/lit",
       "datasourceTemplate": "github-releases"
