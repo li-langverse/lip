@@ -12,13 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout li-language
+      - name: Checkout lic
         uses: actions/checkout@v4
         with:
-          repository: li-langverse/li-language
-          path: li-language
-          # Fallback for pre-transfer: cap-jmk-real/li-language
-          # ref: main
+          repository: li-langverse/lic
+          path: lic
+          ref: main
 
       - name: Install LLVM 18
         run: |
@@ -30,7 +29,7 @@ jobs:
           LLVM_DIR: /usr/lib/llvm-18/lib/cmake/llvm
           CC: clang-18
           CXX: clang++-18
-          LI_REPO: ${{ github.workspace }}/li-language
+          LI_REPO: ${{ github.workspace }}/lic
         run: |
           chmod +x scripts/ci.sh
           ./scripts/ci.sh
