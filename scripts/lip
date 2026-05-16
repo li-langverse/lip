@@ -224,7 +224,7 @@ PY
     pkg="$(pkg_dir)"
     lic="$(lip_find_lic "$ROOT")"
     lit="$(lip_find_lit "$ROOT")"
-  toml="$pkg/li.toml"
+    toml="$pkg/li.toml"
     repo_url="$(python3 -c "
 import re
 t=open('$toml').read()
