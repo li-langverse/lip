@@ -19,8 +19,14 @@ echo "==> path_consumer lip install + build"
 echo "==> lip lock + publish dry-run"
 (cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" lock && "$ROOT/scripts/lip" publish --dry-run)
 
-echo "==> lip publish to local registry"
-(cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --registry "$ROOT/registry")
-test -f "$ROOT/registry/index.json"
+echo "==> lip publish (github index metadata)"
+(cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --dry-run --github)
+(cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --github)
+grep -q '"type": "git"' "$ROOT/registry/index.json"
+echo "==> lip publish to local registry (optional server path)"
+TMP_REG="$(mktemp -d)"
+(cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --registry "$TMP_REG")
+test -f "$TMP_REG/index.json"
+rm -rf "$TMP_REG"
 
 echo "lip-integration: ok"
