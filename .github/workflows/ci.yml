@@ -12,14 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/checkout@v4
+        with:
+          repository: li-langverse/lit
+          path: lit
+          ref: main
       - name: Checkout lic
         uses: actions/checkout@v4
         with:
           repository: li-langverse/lic
           path: lic
           ref: main
-          # Required while lic is private: repo secret LIC_CHECKOUT_TOKEN (contents:read on lic).
-          token: ${{ secrets.LIC_CHECKOUT_TOKEN }}
 
       - name: Install LLVM 18
         run: |
@@ -33,5 +36,5 @@ jobs:
           CXX: clang++-18
           LI_REPO: ${{ github.workspace }}/lic
         run: |
-          chmod +x scripts/ci.sh
+          chmod +x scripts/*.sh
           ./scripts/ci.sh

@@ -9,6 +9,11 @@ description = "Li package pkg-ok"
 # path = { path = "../other" }   # lip 8b+
 # registry = "1.0.0"             # lip 8d+
 
+[package.metadata.lip]
+min_coverage = 80
+maintainer = "li-langverse"
+pkg_id = "PKG-pkg-ok"
+
 [package.metadata.li]
 min_lic = "0.1.0"
 

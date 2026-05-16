@@ -1,8 +1,13 @@
-# PKG-pkg-ok — library entry (add modules under src/ when import lands)
-
 proc pkg_ok_version() -> int
   requires true
   ensures result == 0
   decreases 0
 =
   return 0
+
+proc pkg_ok_tag() -> int
+  requires true
+  ensures result == 1
+  decreases 0
+=
+  return 1

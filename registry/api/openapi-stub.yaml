@@ -1,0 +1,11 @@
+openapi: 3.0.3
+info:
+  title: lip registry API (v1 stub)
+  version: 0.1.0
+paths:
+  /packages/{name}/{version}:
+    get:
+      summary: Fetch package metadata (proof_digest, coverage_pct, tree_digest)
+  /packages:
+    post:
+      summary: Publish (lip publish — local index in v1)

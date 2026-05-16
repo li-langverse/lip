@@ -1,0 +1,4 @@
+[[tests]]
+suite = "smoke"
+file = "smoke/builds.li"
+outcome = "verify_ok"

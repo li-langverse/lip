@@ -5,3 +5,8 @@ suite = "smoke"
 file = "smoke/builds.li"
 outcome = "verify_ok"
 note = "T-PKG-pkg-ok-smoke"
+
+[[tests]]
+suite = "smoke"
+file = "smoke/calls_tag.li"
+outcome = "verify_ok"

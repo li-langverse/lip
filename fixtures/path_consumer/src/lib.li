@@ -1,0 +1,8 @@
+import pkg_ok
+
+proc consumer_main() -> int
+  requires true
+  ensures result == 1
+  decreases 0
+=
+  return pkg_ok_tag()

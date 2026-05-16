@@ -23,4 +23,9 @@ chmod +x "$ROOT/scripts/bootstrap_lip.sh" "$ROOT/scripts/bootstrap_lit.sh"
 export LI_REPO
 "$ROOT/scripts/bootstrap_lip.sh"
 "$ROOT/scripts/bootstrap_lit.sh"
+chmod +x "$ROOT/scripts/lip" "$ROOT/scripts/lip-integration.sh"
+if [[ -x "$ROOT/../lit/scripts/lit" ]]; then
+  export PATH="$ROOT/../lit/scripts:$PATH"
+fi
+"$ROOT/scripts/lip-integration.sh"
 echo "ci: ok"
