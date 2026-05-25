@@ -93,3 +93,12 @@ curl -s http://127.0.0.1:54321/v1/openapi.yaml | head
 - Production DNS / TLS for `registry.li-langverse.*`
 - OAuth publisher login (PH-DB-8+)
 - PG wire protocol (PH-DB-6)
+
+## Cross-repo driver
+
+```bash
+./scripts/ph-db-registry-e2e-cross-repo.sh mock   # lip mock (CI parity)
+./scripts/ph-db-registry-e2e-cross-repo.sh lis    # lis + lip (set LIS_ROOT)
+./scripts/ph-db-registry-e2e-cross-repo.sh all
+```
+
