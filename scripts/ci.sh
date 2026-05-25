@@ -26,6 +26,8 @@ if [[ -x "$ROOT/../lit/scripts/lit" ]]; then
 fi
 "$ROOT/scripts/lip-integration.sh"
 "$ROOT/scripts/registry-http-test.sh"
+chmod +x "$ROOT/scripts/validate-production-registry-url.sh"
+LIP_VALIDATE_PRODUCTION_FULL=1 "$ROOT/scripts/validate-production-registry-url.sh"
 "$ROOT/scripts/registry-e2e.sh"
 if [[ "${LIP_BOOTSTRAP_LI:-}" == "1" ]]; then
   "$ROOT/scripts/bootstrap_lip.sh"
