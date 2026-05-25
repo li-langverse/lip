@@ -1,6 +1,6 @@
 import pkg_ok
 
-proc main() -> int
+def main() -> int
   requires true
   ensures result == 1
   decreases 0

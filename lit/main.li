@@ -3,7 +3,7 @@ extern proc li_rt_argc() -> int
 extern proc li_rt_argv(i: int) -> ptr
 extern proc strcmp(a: ptr, b: ptr) -> int
 
-proc print_version() raises IO -> int
+def print_version() raises IO -> int
   requires true
   ensures result == 0
   decreases 0
@@ -11,7 +11,7 @@ proc print_version() raises IO -> int
   echo "lit 0.0.1-bootstrap (Li test + coverage, min 80%)"
   return 0
 
-proc print_usage() raises IO -> int
+def print_usage() raises IO -> int
   requires true
   ensures result == 1
   decreases 0
@@ -19,7 +19,7 @@ proc print_usage() raises IO -> int
   echo "usage: lit --version | lit smoke"
   return 1
 
-proc dispatch() raises IO -> int
+def dispatch() raises IO -> int
   requires true
   ensures result >= 0
   decreases 0
@@ -33,7 +33,7 @@ proc dispatch() raises IO -> int
     return 0
   return print_usage()
 
-proc main() raises IO -> int
+def main() raises IO -> int
   requires true
   ensures result >= 0
   decreases 0

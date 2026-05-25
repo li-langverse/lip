@@ -22,6 +22,7 @@ jobs:
         with:
           repository: li-langverse/lic
           path: lic
+          # TODO: revert to main after li-langverse/lic#4 merges
           ref: main
 
       - name: Install LLVM 18
