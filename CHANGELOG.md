@@ -8,5 +8,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-
+- PH-DB: cross-repo registry publish E2E doc (`docs/integration/ph-db-registry-e2e.md`).
 - Agent-kit sync and release-notes policy (roadmap v1.1.0).
