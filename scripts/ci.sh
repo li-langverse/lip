@@ -25,6 +25,8 @@ if [[ -x "$ROOT/../lit/scripts/lit" ]]; then
   export PATH="$ROOT/../lit/scripts:$PATH"
 fi
 "$ROOT/scripts/lip-integration.sh"
+"$ROOT/scripts/registry-http-test.sh"
+"$ROOT/scripts/registry-e2e.sh"
 if [[ "${LIP_BOOTSTRAP_LI:-}" == "1" ]]; then
   "$ROOT/scripts/bootstrap_lip.sh"
   "$ROOT/scripts/bootstrap_lit.sh"
