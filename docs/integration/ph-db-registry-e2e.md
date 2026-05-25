@@ -50,7 +50,7 @@ Starts `scripts/registry_mock_server.py`, runs `lip publish --registry http://12
 cd lis
 git checkout feat/ph-db-3-lis-bundle-stub  # or main after merge
 export LI_REGISTRY_API=1
-./bin/lis db start
+./bin/lis db start --profile registry-min
 
 # terminal 2 — lip
 cd lip
@@ -66,6 +66,26 @@ curl -s http://127.0.0.1:54321/v1/packages | head
 curl -s http://127.0.0.1:54321/v1/openapi.yaml | head
 ```
 
+### D — stack-full + realtime WS (after lis PH-DB-7)
+
+Native **lidb** (no SQLite) under **`stack-full`** profile; realtime broker on **54323** by default.
+
+```bash
+cd lis
+./bin/lis db start --profile stack-full
+./bin/lis db migrate --profile stack-full
+
+cd ../lip
+export LIP_REGISTRY_TOKEN=dev-stub-token
+lip publish --registry http://127.0.0.1:54321
+
+# Optional WS probe (skips if broker not up — OK in CI)
+LIP_E2E_REALTIME=1 ./scripts/ph-db-registry-e2e-cross-repo.sh realtime
+# Strict: LIP_E2E_REALTIME_REQUIRED=1 LIP_E2E_REALTIME_WS=1 ./scripts/ph-db-registry-e2e-cross-repo.sh stack
+```
+
+See [`docs/registry.md`](../registry.md) for profile port table.
+
 ### C — lidb-backed (future)
 
 1. Merge lidb engine + liorm execute + RLS migrations.
@@ -79,12 +99,14 @@ curl -s http://127.0.0.1:54321/v1/openapi.yaml | head
 | DDL | `lidb/migrations/001_registry.sql` |
 | OpenAPI | `lip/registry/api/openapi-stub.yaml` → copied to `lis/openapi/registry-v1.yaml` |
 | Publish JSON | `tree_digest`, `proof_digest`, `coverage_pct` (see OpenAPI `PublishRequest`) |
-| Default ports | lis registry **54321**; lip mock **54322** (avoid collision) |
+| Default ports | lis registry API **54321**; lidb wire **54322**; realtime WS **54323**; lip mock **ephemeral** |
+| Storage engine | **lidb native** (SQLite = PH-DB-1 smoke only, not ship) |
+| Full stack profile | `lis db start --profile stack-full` (lis `profiles/stack-full.toml`, PH-DB-5…7) |
 
 ## Agent continuation
 
 1. Merge **lip #14** and **lis #6**; rebase **lis #6** onto **#5** if stacked.
-2. Run sections **A** then **B**; file issues for any field mismatch vs `registry-v1.sql`.
+2. Run sections **A** then **B**; **D** when `stack-full` + realtime broker land; file issues for any field mismatch vs `registry-v1.sql`.
 3. Open lic PR: master plan **PH-DB** row + Future org repos `lidb` (blocked if `lic` worktree has index conflicts).
 4. Wire lis → lidb liorm when lidb **#4** is on `main`.
 
@@ -97,8 +119,10 @@ curl -s http://127.0.0.1:54321/v1/openapi.yaml | head
 ## Cross-repo driver
 
 ```bash
-./scripts/ph-db-registry-e2e-cross-repo.sh mock   # lip mock (CI parity)
-./scripts/ph-db-registry-e2e-cross-repo.sh lis    # lis + lip (set LIS_ROOT)
-./scripts/ph-db-registry-e2e-cross-repo.sh all
+./scripts/ph-db-registry-e2e-cross-repo.sh mock      # lip mock (CI parity)
+./scripts/ph-db-registry-e2e-cross-repo.sh lis       # lis registry-min + lip (set LIS_ROOT)
+./scripts/ph-db-registry-e2e-cross-repo.sh stack     # stack-full + realtime probe (skip if port down)
+./scripts/ph-db-registry-e2e-cross-repo.sh realtime  # WS/TCP probe only (LIP_E2E_REALTIME_REQUIRED=1 to fail)
+./scripts/ph-db-registry-e2e-cross-repo.sh all       # mock + lis; add LIP_E2E_REALTIME=1 for WS probe
 ```
 
