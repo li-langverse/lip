@@ -44,6 +44,7 @@ scripts/       # bootstrap + CI
 
 ## Docs
 
+- [Published handbook (lip)](https://li-langverse.github.io/li-language/ecosystem/lip/) — org status page on **li-language** Pages (after **lic** deploy)
 - [docs/handbook.md](docs/handbook.md) — cross-links to master plan, provability gaps, benchmarks
 - [docs/lip.md](docs/lip.md) · [docs/lit.md](docs/lit.md) · [docs/registry.md](docs/registry.md)
 
