@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Minimal GitHub Pages handbook (`site/`, `.github/workflows/pages.yml`) with master-plan and provability-gaps cross-links.
 - PH-DB-4: validate production registry URL placeholder (`scripts/validate-production-registry-url.sh`, `LIP_REGISTRY_PRODUCTION_URL`).
 - PH-DB-4: automated `lip publish` → lis registry E2E (`scripts/registry-e2e.sh`, CI via `LIS_REPO`).
 - PH-DB: native lidb deployment docs (`docs/registry.md`) — no SQLite ship path, `stack-full` + realtime WS **54323**.
