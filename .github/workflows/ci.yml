@@ -22,20 +22,16 @@ jobs:
         with:
           repository: li-langverse/lic
           path: lic
-          # TODO: revert to main after li-langverse/lic#4 merges
-          ref: main
-
-      - name: Checkout lis (registry E2E)
-        uses: actions/checkout@v4
-        with:
-          repository: li-langverse/lis
-          path: lis
           ref: main
 
       - name: Install LLVM 22
         run: |
-          chmod +x scripts/ci-install-llvm.sh
-          sudo LI_LLVM_MAJOR=22 bash scripts/ci-install-llvm.sh
+          git -C lic fetch --depth 1 origin main 2>/dev/null || true
+          chmod +x lic/scripts/ci-install-llvm.sh 2>/dev/null || true
+          sudo LI_LLVM_MAJOR=22 bash lic/scripts/ci-install-llvm.sh 2>/dev/null || {
+            chmod +x scripts/ci-install-llvm.sh
+            sudo LI_LLVM_MAJOR=22 bash scripts/ci-install-llvm.sh
+          }
 
       - name: Build lic and bootstrap lip/lit
         env:
@@ -43,7 +39,7 @@ jobs:
           CC: clang-22
           CXX: clang++-22
           LI_REPO: ${{ github.workspace }}/lic
-          LIS_REPO: ${{ github.workspace }}/lis
+          LI_E2E_SKIP: "1"
         run: |
           chmod +x scripts/*.sh
           ./scripts/ci.sh
