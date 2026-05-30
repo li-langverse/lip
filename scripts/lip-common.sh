@@ -60,3 +60,11 @@ lip_proof_digest() {
   vc="$("$lic" verify "$pkg/src/lib.li" 2>/dev/null | sha256sum | awk '{print $1}')" || vc="unproved"
   echo "sha256:$vc"
 }
+
+# True when --registry value is an HTTP(S) registry API base (not a filesystem path).
+lip_registry_is_url() {
+  case "$1" in
+    http://*|https://*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
