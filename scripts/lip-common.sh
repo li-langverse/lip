@@ -19,16 +19,17 @@ lip_find_lic() {
 
 lip_find_lit() {
   local root="$1"
-  if [[ -x "$root/../lit/scripts/lit" ]]; then
-    echo "$root/../lit/scripts/lit"
-    return 0
-  fi
-  if [[ -x "$root/scripts/lit" ]]; then
-    echo "$root/scripts/lit"
-    return 0
-  fi
-  for p in "${LI_REPO:-}" "$root/../li"; do
-    [[ -x "$p/scripts/lit" ]] && echo "$p/scripts/lit" && return 0
+  for candidate in \
+    "$root/lit/scripts/lit" \
+    "$root/../lit/scripts/lit" \
+    "$root/scripts/lit"; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  for p in "${LI_REPO:-}" "$root/../li" "$root/../lic"; do
+    [[ -n "$p" && -x "$p/scripts/lit" ]] && echo "$p/scripts/lit" && return 0
   done
   return 1
 }

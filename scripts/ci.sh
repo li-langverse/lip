@@ -21,9 +21,12 @@ export LIC="$LI_REPO/build/compiler/lic/lic"
 export LI_REPO LI_REPO_ROOT="$LI_REPO"
 mkdir -p "$ROOT/build"
 chmod +x "$ROOT/scripts/"*.sh
-if [[ -x "$ROOT/../lit/scripts/lit" ]]; then
-  export PATH="$ROOT/../lit/scripts:$PATH"
-fi
+for lit_scripts in "$ROOT/lit/scripts" "$ROOT/../lit/scripts"; do
+  if [[ -x "$lit_scripts/lit" ]]; then
+    export PATH="$lit_scripts:$PATH"
+    break
+  fi
+done
 "$ROOT/scripts/lip-integration.sh"
 "$ROOT/scripts/registry-http-test.sh"
 "$ROOT/scripts/registry-e2e.sh"
