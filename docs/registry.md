@@ -13,7 +13,7 @@ Consumers use **`lip add NAME git=https://github.com/org/pkg --tag v0.1.0`** or 
 
 ## Local filesystem index
 
-`lip publish --registry PATH` writes only to a filesystem `index.json` under `PATH` (used in CI fixtures). The JSON shape matches the REST API fields (`tree_digest`, `proof_digest`, `coverage_pct`, optional `source`).
+`lip publish --registry PATH` writes only to a filesystem index (used in CI fixtures). The JSON shape matches the REST API fields (`tree_digest`, `proof_digest`, `coverage_pct`, optional `source`).
 
 ## Central DB on lidb (PH-DB-4)
 
@@ -24,7 +24,6 @@ The **v2 central registry** stores the index in **lidb** (Li-native Postgres-sha
 | [`registry/schema/registry-v1.sql`](../registry/schema/registry-v1.sql) | Canonical DDL (`packages`, `package_versions`, `publishers`, `attestations`, `yanks`, `blocklist`) |
 | [`lidb` `migrations/001_registry.sql`](https://github.com/li-langverse/lidb) | Same tables applied by `lis db migrate` (PH-DB-1) |
 | [`registry/api/openapi-stub.yaml`](../registry/api/openapi-stub.yaml) | REST contract for registry service v1 |
-| [`scripts/registry_client.py`](../scripts/registry_client.py) | `lip publish --registry URL` HTTP client (POST publish) |
 
 **Data model (summary):**
 
@@ -37,22 +36,7 @@ The **v2 central registry** stores the index in **lidb** (Li-native Postgres-sha
 
 Active versions are exposed through the `registry_active_versions` view (non-yanked, non-blocklisted).
 
-## `lip publish --registry` (HTTP client)
-
-After local gates pass (`lip lock`, `lit test --coverage`, `lic build`), **`lip publish --registry URL`** posts a **PublishRequest** to the registry API:
-
-| Flag / env | Purpose |
-|------------|---------|
-| `--registry URL` | Registry API base (`http://127.0.0.1:54322` or `…/v1`); `http(s)://` selects HTTP mode |
-| `--registry PATH` | Filesystem index only (no HTTP) |
-| `LIP_REGISTRY_TOKEN` | Bearer token for `POST /v1/packages/{name}/versions` |
-| `--dry-run` | Skip index write / HTTP POST; print intended target |
-
-Required JSON fields (OpenAPI): `version`, `tree_digest`, `proof_digest`, `coverage_pct` (from lock + `.lit/coverage_pct.txt`).
-
-Implementation: [`scripts/registry_client.py`](../scripts/registry_client.py) — `publish_version()` → `POST {base}/v1/packages/{name}/versions`.
-
-Integration tests start [`scripts/registry_mock_server.py`](../scripts/registry_mock_server.py) and assert the mock received digests + coverage.
+**`lip publish` (registry mode, future):** after local gates pass, POST `PublishRequest` to the registry API (see OpenAPI). Until the server ships, use `--registry PATH` or `--github`.
 
 ### Automated lis registry E2E (PH-DB-4 gap #4)
 
