@@ -16,8 +16,10 @@ lip — Li package manager
   lip update
   lip tree
   lip lock [--out FILE]
-  lip publish [--dry-run] [--github | --registry PATH]
+  lip publish [--dry-run] [--github | --registry URL|PATH]
+  lip publish --registry URL posts to registry HTTP API (PH-DB-4); PATH writes index.json
   lip publish defaults to --github when [package.repository].url is set
+  Set LIP_REGISTRY_TOKEN for bearer auth on HTTP registry publish
   lip --version
 EOF
 }
@@ -148,46 +150,7 @@ PY
     pkg="$(pkg_dir)"
     lic="$(lip_find_lic "$ROOT")"
     mkdir -p "$pkg/.li/vendor"
-    python3 - "$pkg/li.toml" "$pkg" <<'PY'
-import pathlib, re, sys
-toml, pkg = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-t = toml.read_text()
-block = re.search(r'\[dependencies\](.*?)(?:\[|\Z)', t, re.S)
-if not block:
-    sys.exit(0)
-for line in block.group(1).splitlines():
-    m = re.match(r'(\w+)\s*=\s*\{\s*path\s*=\s*"([^"]+)"', line.strip())
-    if not m:
-        continue
-    name, rel = m.group(1), m.group(2)
-    src = (toml.parent / rel).resolve()
-    dst = pkg / ".li" / "vendor" / name
-    print(name, src, dst)
-PY
-    while read -r name src dst; do
-      [[ -z "$name" ]] && continue
-      rm -rf "$dst"
-      cp -R "$src" "$dst"
-      echo "lip install: $name -> $dst"
-      if [[ -f "$dst/src/lib.li" ]]; then
-        "$lic" build "$dst/src/lib.li" -o /dev/null
-      fi
-    done < <(python3 - "$pkg/li.toml" "$pkg" <<'PY'
-import pathlib, re, sys
-toml, pkg = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-t = toml.read_text()
-block = re.search(r'\[dependencies\](.*?)(?:\[|\Z)', t, re.S)
-if not block:
-    sys.exit(0)
-for line in block.group(1).splitlines():
-    m = re.match(r'(\w+)\s*=\s*\{\s*path\s*=\s*"([^"]+)"', line.strip())
-    if m:
-        name, rel = m.group(1), m.group(2)
-        src = (toml.parent / rel).resolve()
-        dst = pkg / ".li" / "vendor" / name
-        print(name, src, dst)
-PY
-)
+    lip_install_deps "$pkg" "$lic"
     ;;
   build)
     pkg="$(pkg_dir)"
@@ -268,7 +231,39 @@ print(m.group(1) if m else '')
       reg="$ROOT/registry"
     fi
     if [[ "$dry" == true ]]; then
-      echo "lip publish: dry-run ok"
+      if lip_registry_is_url "$reg"; then
+        echo "lip publish: dry-run ok (registry HTTP $reg packages/$name/versions)"
+      else
+        echo "lip publish: dry-run ok"
+      fi
+      exit 0
+    fi
+    if lip_registry_is_url "$reg"; then
+      python3 - "$ROOT" "$reg" "$name" "$ver" "$tree" "$proof" "$cov" "$mode" "$repo_url" "$tag" <<'PY'
+import importlib.util
+import pathlib
+import sys
+
+lip_root = pathlib.Path(sys.argv[1])
+base, name, ver, tree, proof, cov, mode, repo_url, tag = sys.argv[2:11]
+mod_path = lip_root / "scripts" / "registry_client.py"
+spec = importlib.util.spec_from_file_location("registry_client", mod_path)
+rc = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rc)
+source = None
+if mode == "github" and repo_url:
+    source = {"type": "git", "url": repo_url, "tag": tag}
+out = rc.publish_version(
+    base,
+    name,
+    version=ver,
+    tree_digest=f"sha256:{tree}",
+    proof_digest=proof,
+    coverage_pct=float(cov),
+    source=source,
+)
+print(f"lip publish: registry HTTP {name}@{ver} -> {out.get('index_url', base)}")
+PY
       exit 0
     fi
     mkdir -p "$reg/packages"

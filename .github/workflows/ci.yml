@@ -25,6 +25,13 @@ jobs:
           # TODO: revert to main after li-langverse/lic#4 merges
           ref: main
 
+      - name: Checkout lis (registry E2E)
+        uses: actions/checkout@v4
+        with:
+          repository: li-langverse/lis
+          path: lis
+          ref: feat/ph-db-4-registry-routes
+
       - name: Install LLVM 18
         run: |
           sudo apt-get update
@@ -36,6 +43,7 @@ jobs:
           CC: clang-18
           CXX: clang++-18
           LI_REPO: ${{ github.workspace }}/lic
+          LIS_REPO: ${{ github.workspace }}/lis
         run: |
           chmod +x scripts/*.sh
           ./scripts/ci.sh
