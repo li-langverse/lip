@@ -44,6 +44,7 @@ jobs:
           CXX: clang++-22
           LI_REPO: ${{ github.workspace }}/lic
           LIS_REPO: ${{ github.workspace }}/lis
+          LI_REGISTRY_MOCK: "1"
         run: |
           chmod +x scripts/*.sh
           ./scripts/ci.sh
