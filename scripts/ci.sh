@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+"$ROOT/scripts/check-ci-llvm-pin.sh"
 LI_REPO="${LI_REPO:-}"
 if [[ -z "$LI_REPO" ]]; then
   for p in "$ROOT/../li-language" "$ROOT/../li"; do
@@ -13,7 +14,7 @@ if [[ -z "$LI_REPO" ]]; then
 fi
 export LLVM_DIR="${LLVM_DIR:-}"
 if [[ -z "$LLVM_DIR" ]] && command -v brew >/dev/null 2>&1; then
-  b="$(brew --prefix llvm@18 2>/dev/null)/lib/cmake/llvm"
+  b="$(brew --prefix llvm@22 2>/dev/null)/lib/cmake/llvm"
   [[ -d "$b" ]] && export LLVM_DIR="$b"
 fi
 (cd "$LI_REPO" && ./scripts/build.sh)
@@ -25,6 +26,10 @@ if [[ -x "$ROOT/../lit/scripts/lit" ]]; then
   export PATH="$ROOT/../lit/scripts:$PATH"
 fi
 "$ROOT/scripts/lip-integration.sh"
+"$ROOT/scripts/registry-http-test.sh"
+chmod +x "$ROOT/scripts/validate-production-registry-url.sh"
+LIP_VALIDATE_PRODUCTION_FULL=1 "$ROOT/scripts/validate-production-registry-url.sh"
+"$ROOT/scripts/registry-e2e.sh"
 if [[ "${LIP_BOOTSTRAP_LI:-}" == "1" ]]; then
   "$ROOT/scripts/bootstrap_lip.sh"
   "$ROOT/scripts/bootstrap_lit.sh"

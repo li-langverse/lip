@@ -25,16 +25,20 @@ jobs:
           # TODO: revert to main after li-langverse/lic#4 merges
           ref: main
 
-      - name: Install LLVM 18
+      - name: Install LLVM 22
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build clang-18 llvm-18-dev
+          git -C lic fetch --depth 1 origin main 2>/dev/null || true
+          chmod +x lic/scripts/ci-install-llvm.sh 2>/dev/null || true
+          sudo LI_LLVM_MAJOR=22 bash lic/scripts/ci-install-llvm.sh 2>/dev/null || {
+            sudo apt-get update
+            sudo apt-get install -y cmake ninja-build clang-22 llvm-22-dev
+          }
 
       - name: Build lic and bootstrap lip/lit
         env:
-          LLVM_DIR: /usr/lib/llvm-18/lib/cmake/llvm
-          CC: clang-18
-          CXX: clang++-18
+          LLVM_DIR: /usr/lib/llvm-22/lib/cmake/llvm
+          CC: clang-22
+          CXX: clang++-22
           LI_REPO: ${{ github.workspace }}/lic
         run: |
           chmod +x scripts/*.sh
