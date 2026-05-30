@@ -125,4 +125,13 @@ curl -s "http://127.0.0.1:54322/v1/packages?name=my-package" | jq .
 | CI mock | ephemeral port | `scripts/registry_mock_server.py` + `lip-integration.sh` |
 | Production | `https://registry.li-langverse.example/v1` | DNS + TLS when wired |
 
+**Production placeholder validation (CI, no network):**
+
+```bash
+LIP_REGISTRY_PRODUCTION_URL=https://registry.li-langverse.example \
+  ./scripts/validate-production-registry-url.sh
+```
+
+Checks `registry_client.normalize_base_url`, OpenAPI `servers[]`, and `lip publish --registry URL --dry-run` against the placeholder host. Host deploy steps: [lis `docs/production-registry.md`](https://github.com/li-langverse/lis/blob/main/docs/production-registry.md); ecosystem checklist [roadmap `ph-db-status.md` §5](https://github.com/li-langverse/roadmap/blob/main/docs/ecosystem/ph-db-status.md).
+
 Until the **lis** registry service ships in production, use **GitHub-first** publish (`lip publish --github`) or filesystem `--registry PATH`; the schema, OpenAPI, and HTTP client are the contract for **tier_db_registry** benchmarks.
