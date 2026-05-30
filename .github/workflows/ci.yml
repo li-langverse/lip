@@ -32,10 +32,10 @@ jobs:
           path: lis
           ref: feat/ph-db-4-registry-routes
 
-      - name: Install LLVM 22 and build tools
+      - name: Install LLVM 22
         run: |
-          chmod +x lic/scripts/ci-install-llvm.sh
-          sudo LI_LLVM_MAJOR=22 bash lic/scripts/ci-install-llvm.sh
+          chmod +x scripts/ci-install-llvm.sh
+          sudo LI_LLVM_MAJOR=22 bash scripts/ci-install-llvm.sh
 
       - name: Build lic and bootstrap lip/lit
         env:
