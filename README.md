@@ -44,6 +44,7 @@ scripts/       # bootstrap + CI
 
 ## Docs
 
+- **Live handbook:** https://li-langverse.github.io/lip/ (GitHub Pages; enable Actions Pages on first deploy)
 - [docs/handbook.md](docs/handbook.md) — cross-links to master plan, provability gaps, benchmarks
 - [docs/lip.md](docs/lip.md) · [docs/lit.md](docs/lit.md) · [docs/registry.md](docs/registry.md)
 

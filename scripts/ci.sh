@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+"$ROOT/scripts/check-ci-llvm-pin.sh"
 LI_REPO="${LI_REPO:-}"
 if [[ -z "$LI_REPO" ]]; then
   for p in "$ROOT/../li-language" "$ROOT/../li"; do
