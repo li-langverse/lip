@@ -6,6 +6,19 @@
       "tree_digest": "sha256:cb77ba3f3295336993fcef7d4194f3dc45312a3c4df723bf29c56c428e184a9b",
       "proof_digest": "sha256:2018a38c6da1b2a76cb5a095f4158030ecffdb5a83afe2b6bca1af2989b12867",
       "coverage_pct": 100.0
+    },
+    {
+      "name": "lis-cli",
+      "version": "0.1.0",
+      "tree_digest": "sha256:pending-publish",
+      "proof_digest": "sha256:pending-publish",
+      "coverage_pct": 0.0,
+      "source": {
+        "type": "git",
+        "url": "https://github.com/li-langverse/lip.git",
+        "tag": "main",
+        "path": "packages/lis-cli"
+      }
     }
   ]
 }
