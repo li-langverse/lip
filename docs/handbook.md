@@ -1,6 +1,6 @@
 # lip / lit handbook (in-repo)
 
-Package manager (**lip**) and test runner (**lit**) docs live in this repository until a dedicated GitHub Pages site is added.
+Package manager (**lip**) and test runner (**lit**) docs live in this repository. **Published handbook:** [lip on li-language Pages](https://li-langverse.github.io/li-language/ecosystem/lip/) (deploy after **lic** merge).
 
 ## User docs
 
@@ -18,7 +18,8 @@ Package manager (**lip**) and test runner (**lit**) docs live in this repository
 | [Package manager plan](https://github.com/li-langverse/lic/blob/main/docs/superpowers/plans/2026-05-16-li-package-manager-lip.md) | Normative lip/lit design |
 | [Provability gaps](https://github.com/li-langverse/lic/blob/main/docs/verification/provability-gaps.md) | Honest **G-*** status |
 | [Engineering standards](https://github.com/li-langverse/roadmap/blob/main/docs/ecosystem/engineering-standards.md) | Publish gates |
-| [Benchmarks dashboard](https://li-langverse.github.io/benchmarks/) | Perf after compiler changes |
+| [Live documentation map](https://li-langverse.github.io/li-language/ecosystem/live-documentation/) | Org Pages publish paths |
+| [Published lip handbook](https://li-langverse.github.io/li-language/ecosystem/lip/) | Per-repo status (after Pages deploy) |
 
 ## Release notes
 
