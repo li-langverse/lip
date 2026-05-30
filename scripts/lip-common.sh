@@ -123,3 +123,11 @@ for line in block.group(1).splitlines():
 PY
 )
 }
+
+# True when --registry value is an HTTP(S) registry API base (not a filesystem path).
+lip_registry_is_url() {
+  case "$1" in
+    http://*|https://*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
