@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+"$ROOT/scripts/check-ci-llvm-pin.sh"
 LI_REPO="${LI_REPO:-}"
 if [[ -z "$LI_REPO" ]]; then
   for p in "$ROOT/../li-language" "$ROOT/../li"; do
@@ -21,14 +22,13 @@ export LIC="$LI_REPO/build/compiler/lic/lic"
 export LI_REPO LI_REPO_ROOT="$LI_REPO"
 mkdir -p "$ROOT/build"
 chmod +x "$ROOT/scripts/"*.sh
-for lit_scripts in "$ROOT/lit/scripts" "$ROOT/../lit/scripts"; do
-  if [[ -x "$lit_scripts/lit" ]]; then
-    export PATH="$lit_scripts:$PATH"
-    break
-  fi
-done
+if [[ -x "$ROOT/../lit/scripts/lit" ]]; then
+  export PATH="$ROOT/../lit/scripts:$PATH"
+fi
 "$ROOT/scripts/lip-integration.sh"
 "$ROOT/scripts/registry-http-test.sh"
+chmod +x "$ROOT/scripts/validate-production-registry-url.sh"
+LIP_VALIDATE_PRODUCTION_FULL=1 "$ROOT/scripts/validate-production-registry-url.sh"
 "$ROOT/scripts/registry-e2e.sh"
 if [[ "${LIP_BOOTSTRAP_LI:-}" == "1" ]]; then
   "$ROOT/scripts/bootstrap_lip.sh"
