@@ -38,6 +38,27 @@ Active versions are exposed through the `registry_active_versions` view (non-yan
 
 **`lip publish` (registry mode, future):** after local gates pass, POST `PublishRequest` to the registry API (see OpenAPI). Until the server ships, use `--registry PATH` or `--github`.
 
+### Automated lis registry E2E (PH-DB-4 gap #4)
+
+[`scripts/registry-e2e.sh`](../scripts/registry-e2e.sh) runs **`lip publish --registry http://127.0.0.1:54321`** against the **lis** registry listener (`routes/registry/server.py`), then asserts **HTTP 201** on publish and **GET** `/v1/packages/{name}/{version}` returns the version.
+
+```bash
+# Requires lic + lit built; lis checkout at ../lis (or LIS_REPO)
+./scripts/registry-e2e.sh
+
+# Skip (CI without lis, local opt-out)
+LI_E2E_SKIP=1 ./scripts/registry-e2e.sh
+```
+
+| Env | Default | Purpose |
+|-----|---------|---------|
+| `LIS_REPO` | `../lis` | lis checkout with `routes/registry/server.py` |
+| `LI_API_PORT` | `54321` | lis registry port (lip mock uses **54322**) |
+| `LIP_REGISTRY_TOKEN` | `test-token` | Bearer for publish |
+| `LI_E2E_SKIP` | unset | `1` / `true` → exit 0 without running |
+
+`scripts/ci.sh` runs `registry-http-test.sh` (lip mock, no lis) then `registry-e2e.sh` (skips if lis is absent).
+
 ## REST API
 
 OpenAPI 3 spec: [`registry/api/openapi-stub.yaml`](../registry/api/openapi-stub.yaml).
@@ -51,17 +72,50 @@ OpenAPI 3 spec: [`registry/api/openapi-stub.yaml`](../registry/api/openapi-stub.
 
 Publish body **must** include `tree_digest`, `proof_digest`, and `coverage_pct` (same as `registry/index.json` and `li.lock`).
 
-## Domain deployment (placeholder)
+## lidb + lis deployment flow
 
-Production hostname (replace when DNS is wired):
+End-to-end local stack (registry service + DB):
 
-- **API:** `https://registry.li-langverse.example/v1`
-- **Local dev:** `http://127.0.0.1:54322/v1` via **`lis db start`** with `profiles/registry-min.toml`
+```bash
+# 1. Start embedded lidb and registry HTTP (lis registry-min profile)
+lis db start --profile registry-min
+# Listens: lidb on embedded port; registry API http://127.0.0.1:54322/v1
 
-Deployment stack (target):
+# 2. Apply schema (first run or after lidb upgrade)
+lis db migrate --profile registry-min
 
-1. **`lis db start --profile registry-min`** — embedded lidb + registry HTTP on port **54322**
-2. **TLS** termination at edge (Caddy/nginx) for `registry.li-langverse.example`
-3. **Publisher auth** — bearer tokens mapped to `publishers.key_id` (OIDC later)
+# 3. Issue a publisher token (registry-min dev profile maps to publishers.key_id)
+export LIP_REGISTRY_TOKEN="$(lis registry token --profile registry-min)"
 
-Until PH-DB-4 lands, keep using GitHub-first publish; the schema and OpenAPI are the contract for implementation and benchmarks (`tier_db_registry`).
+# 4. Publish from a package repo after gates
+cd my-package && lic build && lit test --coverage
+lip publish --registry http://127.0.0.1:54322
+
+# 5. Verify index
+curl -s "http://127.0.0.1:54322/v1/packages?name=my-package" | jq .
+```
+
+**Production deployment (target):**
+
+1. **lidb** — managed Postgres-compatible store (Li-native engine or hosted Postgres with `registry-v1.sql` applied).
+2. **lis** — `lis db migrate` in CI/CD; registry HTTP service binds `:443` behind TLS.
+3. **Edge** — Caddy/nginx terminates TLS for `registry.li-langverse.example`, proxies to registry service.
+4. **Auth** — bearer tokens → `publishers.key_id`; OIDC for org publishers (later).
+5. **Consumers** — `lip add NAME registry=https://registry.li-langverse.example/v1` (resolver wiring follows central install PH).
+
+| Environment | Registry API base | Notes |
+|-------------|-------------------|--------|
+| Local dev | `http://127.0.0.1:54322/v1` | `lis db start --profile registry-min` |
+| CI mock | ephemeral port | `scripts/registry_mock_server.py` + `lip-integration.sh` |
+| Production | `https://registry.li-langverse.example/v1` | DNS + TLS when wired |
+
+**Production placeholder validation (CI, no network):**
+
+```bash
+LIP_REGISTRY_PRODUCTION_URL=https://registry.li-langverse.example \
+  ./scripts/validate-production-registry-url.sh
+```
+
+Checks `registry_client.normalize_base_url`, OpenAPI `servers[]`, and `lip publish --registry URL --dry-run` against the placeholder host. Host deploy steps: [lis `docs/production-registry.md`](https://github.com/li-langverse/lis/blob/main/docs/production-registry.md); ecosystem checklist [roadmap `ph-db-status.md` §5](https://github.com/li-langverse/roadmap/blob/main/docs/ecosystem/ph-db-status.md).
+
+Until the **lis** registry service ships in production, use **GitHub-first** publish (`lip publish --github`) or filesystem `--registry PATH`; the schema, OpenAPI, and HTTP client are the contract for **tier_db_registry** benchmarks.
