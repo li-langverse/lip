@@ -11,7 +11,7 @@ The compiler (`lic`) lives in [**li-langverse/li-language**](https://github.com/
 
 ## Prerequisites
 
-- LLVM 18, CMake, Ninja (same as [li-language getting started](https://github.com/li-langverse/li-language/blob/main/docs/getting-started.md))
+- LLVM 22, CMake, Ninja (same as [li-language getting started](https://github.com/li-langverse/li-language/blob/main/docs/getting-started.md))
 - A built `lic` from **li-language** (or let `scripts/ci.sh` build it)
 
 ## Quick start (bootstrap)
