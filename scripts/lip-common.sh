@@ -123,3 +123,11 @@ for line in block.group(1).splitlines():
 PY
 )
 }
+
+# Returns 0 when argument is an http(s) registry URL.
+lip_registry_is_url() {
+  case "${1:-}" in
+    http://*|https://*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
