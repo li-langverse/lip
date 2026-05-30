@@ -150,46 +150,7 @@ PY
     pkg="$(pkg_dir)"
     lic="$(lip_find_lic "$ROOT")"
     mkdir -p "$pkg/.li/vendor"
-    python3 - "$pkg/li.toml" "$pkg" <<'PY'
-import pathlib, re, sys
-toml, pkg = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-t = toml.read_text()
-block = re.search(r'\[dependencies\](.*?)(?:\[|\Z)', t, re.S)
-if not block:
-    sys.exit(0)
-for line in block.group(1).splitlines():
-    m = re.match(r'(\w+)\s*=\s*\{\s*path\s*=\s*"([^"]+)"', line.strip())
-    if not m:
-        continue
-    name, rel = m.group(1), m.group(2)
-    src = (toml.parent / rel).resolve()
-    dst = pkg / ".li" / "vendor" / name
-    print(name, src, dst)
-PY
-    while read -r name src dst; do
-      [[ -z "$name" ]] && continue
-      rm -rf "$dst"
-      cp -R "$src" "$dst"
-      echo "lip install: $name -> $dst"
-      if [[ -f "$dst/src/lib.li" ]]; then
-        "$lic" build "$dst/src/lib.li" -o /dev/null
-      fi
-    done < <(python3 - "$pkg/li.toml" "$pkg" <<'PY'
-import pathlib, re, sys
-toml, pkg = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-t = toml.read_text()
-block = re.search(r'\[dependencies\](.*?)(?:\[|\Z)', t, re.S)
-if not block:
-    sys.exit(0)
-for line in block.group(1).splitlines():
-    m = re.match(r'(\w+)\s*=\s*\{\s*path\s*=\s*"([^"]+)"', line.strip())
-    if m:
-        name, rel = m.group(1), m.group(2)
-        src = (toml.parent / rel).resolve()
-        dst = pkg / ".li" / "vendor" / name
-        print(name, src, dst)
-PY
-)
+    lip_install_deps "$pkg" "$lic"
     ;;
   build)
     pkg="$(pkg_dir)"

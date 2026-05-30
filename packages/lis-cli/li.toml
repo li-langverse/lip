@@ -1,0 +1,12 @@
+[package]
+name = "lis-cli"
+version = "0.1.0"
+edition = "2026"
+description = "Install li-langverse/lis supervisor + staging edge via lip"
+license = "Apache-2.0 OR MIT"
+
+[package.repository]
+url = "https://github.com/li-langverse/lis"
+
+[dependencies]
+lis = { git = "https://github.com/li-langverse/lis.git", tag = "main" }
