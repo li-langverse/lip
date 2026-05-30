@@ -59,10 +59,6 @@ def publish_version(
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            if resp.status != 201:
-                raise RuntimeError(
-                    f"registry publish failed: expected HTTP 201, got {resp.status}"
-                )
             raw = resp.read().decode("utf-8")
             return json.loads(raw) if raw.strip() else {}
     except urllib.error.HTTPError as e:
