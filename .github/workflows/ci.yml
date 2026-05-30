@@ -25,14 +25,17 @@ jobs:
           # TODO: revert to main after li-langverse/lic#4 merges
           ref: main
 
-      - name: Install LLVM 22
+      - name: Checkout lis (registry E2E)
+        uses: actions/checkout@v4
+        with:
+          repository: li-langverse/lis
+          path: lis
+          ref: main
+
+      - name: Install LLVM 22 and build tools
         run: |
-          git -C lic fetch --depth 1 origin main 2>/dev/null || true
-          chmod +x lic/scripts/ci-install-llvm.sh 2>/dev/null || true
-          sudo LI_LLVM_MAJOR=22 bash lic/scripts/ci-install-llvm.sh 2>/dev/null || {
-            sudo apt-get update
-            sudo apt-get install -y cmake ninja-build clang-22 llvm-22-dev
-          }
+          chmod +x lic/scripts/ci-install-llvm.sh
+          sudo LI_LLVM_MAJOR=22 bash lic/scripts/ci-install-llvm.sh
 
       - name: Build lic and bootstrap lip/lit
         env:
@@ -40,6 +43,8 @@ jobs:
           CC: clang-22
           CXX: clang++-22
           LI_REPO: ${{ github.workspace }}/lic
+          LIS_REPO: ${{ github.workspace }}/lis
+          LI_REGISTRY_MOCK: "1"
         run: |
           chmod +x scripts/*.sh
           ./scripts/ci.sh
