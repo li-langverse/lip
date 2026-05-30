@@ -8,7 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **lip install:** git dependencies (`git` + optional `tag`) via `lip_install_deps` in `scripts/lip-common.sh`
-- **lis-cli:** `packages/lis-cli/` meta-package + registry index entry for vendoring [lis](https://github.com/li-langverse/lis)
-
+- PH-DB-4: automated `lip publish` → lis registry E2E (`scripts/registry-e2e.sh`, CI via `LIS_REPO`).
+- PH-DB: cross-repo registry publish E2E doc (`docs/integration/ph-db-registry-e2e.md`).
 - Agent-kit sync and release-notes policy (roadmap v1.1.0).
