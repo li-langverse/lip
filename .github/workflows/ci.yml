@@ -30,7 +30,7 @@ jobs:
         with:
           repository: li-langverse/lis
           path: lis
-          ref: feat/ph-db-4-registry-routes
+          ref: main
 
       - name: Install LLVM 22 and build tools
         run: |
