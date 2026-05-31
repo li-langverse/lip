@@ -1,11 +1,11 @@
-# lip — Li package manager and test tooling
+﻿# lip â€” Li package manager and test tooling
 
 Official ecosystem repository for the [Li](https://github.com/li-langverse/li-language) programming language.
 
 | Tool | Role |
 |------|------|
 | **lip** | Resolve, fetch, lock, and publish packages (`li.toml` / `li.lock`) |
-| **lit** | Run package tests and enforce **≥ 80%** line coverage (CLI v1) |
+| **lit** | Run package tests and enforce **â‰¥ 80%** line coverage (CLI v1) |
 
 The compiler (`lic`) lives in [**li-langverse/li-language**](https://github.com/li-langverse/li-language). This repo pins a `lic` version via [`li-toolchain.toml`](li-toolchain.toml) and builds `lip` / `lit` with it.
 
@@ -46,16 +46,16 @@ scripts/       # bootstrap + CI
 
 - **Live handbook:** https://li-langverse.github.io/lip/ (GitHub Pages)
 - Ecosystem tab on [li-language handbook](https://li-langverse.github.io/li-language/ecosystem/lip/)
-- [docs/handbook.md](docs/handbook.md) — cross-links to master plan, provability gaps, benchmarks
-- [docs/lip.md](docs/lip.md) · [docs/lit.md](docs/lit.md) · [docs/registry.md](docs/registry.md)
+- [docs/handbook.md](docs/handbook.md) â€” cross-links to master plan, provability gaps, benchmarks
+- [docs/lip.md](docs/lip.md) Â· [docs/lit.md](docs/lit.md) Â· [docs/registry.md](docs/registry.md)
 
 ## Policy
 
-- **Publish / registry install:** `lic build` (Lean proof gate) + **ed25519** manifest signature + **`lit test --coverage` ≥ 80%**
+- **Publish / registry install:** `lic build` (Lean proof gate) + **ed25519** manifest signature + **`lit test --coverage` â‰¥ 80%**
 - **Hybrid deps:** git URLs day one; central registry recommended for discoverability
 
 Normative plans: [li-language ecosystem docs](https://github.com/li-langverse/li-language/tree/main/docs/superpowers/plans/2026-05-16-li-package-manager-lip.md).
 
 ## License
 
-Apache-2.0 OR MIT — see [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT).
+GPL-3.0-or-later OR MIT â€” see [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT).
