@@ -61,3 +61,14 @@ PY
 fi
 
 echo "lip-integration: ok"
+
+if [[ -x "$ROOT/scripts/toy-git-install-smoke.sh" ]]; then
+  echo "==> toy-git-install-smoke"
+  "$ROOT/scripts/toy-git-install-smoke.sh"
+fi
+
+if [[ -x "$ROOT/scripts/toy-registry-smoke.sh" ]]; then
+  echo "==> toy-registry-smoke"
+  "$ROOT/scripts/toy-registry-smoke.sh"
+fi
+

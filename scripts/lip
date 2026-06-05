@@ -7,10 +7,10 @@ source "$ROOT/scripts/lip-common.sh"
 
 usage() {
   cat <<'EOF'
-lip — Li package manager
+lip — Li package manage
 
   lip init NAME [--kind library|binary] [--workspace DIR]
-  lip add NAME {path=PATH | git=URL [--tag TAG]}
+  lip add NAME {path=PATH | git=URL [--tag TAG] [--subdir SUBDIR]}
   lip install [--locked]
   lip build
   lip update
@@ -118,16 +118,18 @@ PY
     elif [[ "$spec" == git=* ]]; then
       url="${spec#git=}"
       tag=""
+      subdir=""
       shift
       while [[ $# -gt 0 ]]; do
         case "$1" in
           --tag) tag="$2"; shift 2 ;;
+          --subdir) subdir="$2"; shift 2 ;;
           *) echo "lip add: unknown $1" >&2; exit 1 ;;
         esac
       done
-      python3 - "$pkg/li.toml" "$name" "$url" "$tag" <<'PY'
+      python3 - "$pkg/li.toml" "$name" "$url" "$tag" "$subdir" <<'PY'
 import pathlib, re, sys
-p, name, url, tag = pathlib.Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4]
+p, name, url, tag, subdir = pathlib.Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
 t = p.read_text() if p.exists() else ""
 if "[dependencies]" not in t:
     t += "\n[dependencies]\n"
@@ -135,13 +137,15 @@ t = re.sub(rf'(?m)^{re.escape(name)}\s*=.*\n', '', t)
 line = f'{name} = {{ git = "{url}"'
 if tag:
     line += f', tag = "{tag}"'
+if subdir:
+    line += f', subdir = "{subdir}"'
 line += " }\n"
 t = t.rstrip() + "\n" + line
 p.write_text(t)
 PY
-      echo "lip add: $name -> git $url${tag:+ @ $tag}"
+      echo "lip add: $name -> git $url${tag:+ @ $tag}${subdir:+ ($subdir)}"
     else
-      echo "lip add: use path=DIR or git=URL [--tag TAG]" >&2
+      echo "lip add: use path=DIR or git=URL [--tag TAG] [--subdir SUBDIR]" >&2
       exit 1
     fi
     ;;
@@ -188,6 +192,9 @@ PY
     lic="$(lip_find_lic "$ROOT")"
     lit="$(lip_find_lit "$ROOT")"
     toml="$pkg/li.toml"
+    if python3 -c "import re,sys; t=open(sys.argv[1]).read(); sys.exit(0 if re.search(r'publish_allowlist\\s*=\\s*true', t, re.I) else 1)" "$toml" 2>/dev/null; then
+      python3 "$ROOT/scripts/publish_allowlist.py" "$pkg" || { echo "lip publish: allowlist failed" >&2; exit 1; }
+    fi
     repo_url="$(python3 -c "
 import re
 t=open('$toml').read()

@@ -64,24 +64,38 @@ lip_proof_digest() {
 lip_install_deps() {
   local pkg="$1" lic="$2"
   mkdir -p "$pkg/.li/vendor"
-  while read -r name kind src dst tag; do
+  while read -r name kind src dst tag subdir; do
     [[ -z "$name" ]] && continue
     rm -rf "$dst"
     if [[ "$kind" == path ]]; then
       cp -R "$src" "$dst"
     elif [[ "$kind" == git ]]; then
-      mkdir -p "$dst"
-      if [[ -d "$dst/.git" ]]; then
-        git -C "$dst" fetch --depth 1 origin 2>/dev/null || true
-        if [[ -n "$tag" ]]; then
-          git -C "$dst" checkout "$tag" 2>/dev/null || git -C "$dst" checkout "origin/$tag" 2>/dev/null || true
-        fi
-      else
-        if [[ -n "$tag" ]]; then
-          git clone --depth 1 --branch "$tag" "$src" "$dst"
+      mkdir -p "$(dirname "$dst")"
+      rm -rf "$dst"
+      if [[ -n "$tag" ]]; then
+        if [[ "$tag" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+          git clone --depth 1 "$src" "$dst"
+          git -C "$dst" checkout "$tag"
+        elif git clone --depth 1 --branch "$tag" "$src" "$dst" 2>/dev/null; then
+          :
         else
           git clone --depth 1 "$src" "$dst"
+          git -C "$dst" checkout "$tag"
         fi
+      else
+        git clone --depth 1 "$src" "$dst"
+      fi
+      if [[ -n "${subdir:-}" ]]; then
+        tmp="${dst}.__lip_subdir__"
+        subpath="$dst/$subdir"
+        if [[ ! -d "$subpath" ]]; then
+          echo "lip install: git subdir missing: $subdir in $src" >&2
+          exit 1
+        fi
+        mv "$dst" "$tmp"
+        mkdir -p "$dst"
+        cp -R "$tmp/$subdir/." "$dst/"
+        rm -rf "$tmp"
       fi
     else
       echo "lip install: unknown source kind $kind for $name" >&2
@@ -110,16 +124,18 @@ for line in block.group(1).splitlines():
         name, rel = m.group(1), m.group(2)
         src = (toml.parent / rel).resolve()
         dst = pkg / ".li" / "vendor" / name
-        print(name, "path", src, dst, "")
+        print(name, "path", src, dst, "", "")
         continue
     m = re.match(
-        r'(\w+)\s*=\s*\{\s*git\s*=\s*"([^"]+)"(?:\s*,\s*tag\s*=\s*"([^"]+)")?',
+        r'(\w+)\s*=\s*\{\s*git\s*=\s*"([^"]+)"'
+        r'(?:\s*,\s*tag\s*=\s*"([^"]+)")?'
+        r'(?:\s*,\s*subdir\s*=\s*"([^"]+)")?',
         line,
     )
     if m:
-        name, url, tag = m.group(1), m.group(2), m.group(3) or ""
+        name, url, tag, subdir = m.group(1), m.group(2), m.group(3) or "", m.group(4) or ""
         dst = pkg / ".li" / "vendor" / name
-        print(name, "git", url, dst, tag)
+        print(name, "git", url, dst, tag, subdir)
 PY
 )
 }

@@ -1,4 +1,4 @@
-﻿def toy_registry_ping() -> int
+def toy_registry_ping() -> int
   requires true
   ensures result == 0
   decreases 0

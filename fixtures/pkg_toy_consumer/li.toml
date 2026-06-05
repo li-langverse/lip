@@ -1,0 +1,15 @@
+[package]
+name = "li-toy-consumer"
+version = "0.0.1"
+edition = "2026"
+license = "Apache-2.0 OR MIT"
+description = "Fixture consumer: lip install li-toy-registry from git"
+
+[dependencies]
+li_toy_registry = { git = "https://github.com/li-langverse/lip", tag = "main", subdir = "fixtures/pkg_toy_registry" }
+
+[package.metadata.lip]
+min_coverage = 80
+
+[package.metadata.li]
+min_lic = "0.1.0"

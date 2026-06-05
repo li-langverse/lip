@@ -1,0 +1,8 @@
+import li_toy_registry
+
+def toy_consumer_ping() -> int
+  requires true
+  ensures result == 0
+  decreases 0
+=
+  return toy_registry_ping()

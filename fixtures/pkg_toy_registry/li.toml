@@ -11,5 +11,9 @@ maintainer = "li-langverse"
 pkg_id = "PKG-li-toy-registry"
 publish_allowlist = true
 
+[package.repository]
+url = "https://github.com/li-langverse/lip"
+
 [package.metadata.li]
 min_lic = "0.1.0"
+import_name = "li_toy_registry"
