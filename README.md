@@ -48,6 +48,7 @@ scripts/       # bootstrap + CI
 - Ecosystem tab on [li-language handbook](https://li-langverse.github.io/li-language/ecosystem/lip/)
 - [docs/handbook.md](docs/handbook.md) â€” cross-links to master plan, provability gaps, benchmarks
 - [docs/lip.md](docs/lip.md) Â· [docs/lit.md](docs/lit.md) Â· [docs/registry.md](docs/registry.md)
+- `./scripts/lip-login.sh` — interactive registry login; stores token in `~/.config/lip/credentials.toml`
 
 ## Policy
 
