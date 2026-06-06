@@ -50,6 +50,9 @@ LI_API_PORT="${LI_API_PORT:-54321}"
 LI_DATA_DIR="$(mktemp -d)"
 WORK_PKG="$(mktemp -d)"
 export LI_DATA_DIR LI_REGISTRY_QUIET=1
+export LI_REGISTRY_MOCK=1
+export LI_REGISTRY_DEV_TOKEN="${LIP_REGISTRY_TOKEN}"
+export LI_JWT_SECRET="${LI_JWT_SECRET:-test-jwt-secret}"
 export PYTHONPATH="$LIS_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
 cleanup() {
@@ -105,7 +108,7 @@ assert "tree_digest" in data and data["tree_digest"].startswith("sha256:")
 assert "proof_digest" in data
 PY
 
-echo "registry-e2e: POST replay expects 201"
+echo "registry-e2e: POST duplicate version expects 409"
 tree="$(python3 -c "import json,sys; print(json.loads(sys.argv[1])['tree_digest'])" "$body")"
 proof="$(python3 -c "import json,sys; print(json.loads(sys.argv[1])['proof_digest'])" "$body")"
 cov="$(python3 -c "import json,sys; print(json.loads(sys.argv[1])['coverage_pct'])" "$body")"
@@ -113,8 +116,8 @@ code="$(curl -s -o /dev/null -w '%{http_code}' -X POST "${BASE}/v1/packages/${NA
   -H "Authorization: Bearer ${LIP_REGISTRY_TOKEN}" \
   -H 'Content-Type: application/json' \
   -d "{\"version\":\"${VER}\",\"tree_digest\":\"${tree}\",\"proof_digest\":\"${proof}\",\"coverage_pct\":${cov}}")"
-if [[ "$code" != "201" ]]; then
-  echo "registry-e2e: expected HTTP 201 on publish, got ${code}" >&2
+if [[ "$code" != "409" ]]; then
+  echo "registry-e2e: expected HTTP 409 on duplicate publish, got ${code}" >&2
   exit 1
 fi
 

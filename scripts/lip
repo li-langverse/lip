@@ -175,6 +175,14 @@ PY
     pkg="$(pkg_dir)"
     lip_lock_write "$pkg" "${out:-$pkg/li.lock}"
     ;;
+  peer)
+    shift
+    sub="${1:-}"
+    case "$sub" in
+      serve) shift; exec "$ROOT/scripts/lip-peer-serve.sh" "$@" ;;
+      *) echo "lip peer: unknown subcommand '${sub:-}' (try: serve)" >&2; exit 1 ;;
+    esac
+    ;;
   publish)
     shift
     dry=false
@@ -246,17 +254,19 @@ print(m.group(1) if m else '')
       exit 0
     fi
     if lip_registry_is_url "$reg"; then
-      python3 - "$ROOT" "$reg" "$name" "$ver" "$tree" "$proof" "$cov" "$mode" "$repo_url" "$tag" <<'PY'
+      python3 - "$ROOT" "$reg" "$pkg" "$name" "$ver" "$tree" "$proof" "$cov" "$mode" "$repo_url" "$tag" <<'PY'
 import importlib.util
 import pathlib
 import sys
 
 lip_root = pathlib.Path(sys.argv[1])
-base, name, ver, tree, proof, cov, mode, repo_url, tag = sys.argv[2:11]
+base, pkg, name, ver, tree, proof, cov, mode, repo_url, tag = sys.argv[2:12]
 mod_path = lip_root / "scripts" / "registry_client.py"
 spec = importlib.util.spec_from_file_location("registry_client", mod_path)
 rc = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(rc)
+artifact_bytes, artifact_digest = rc.package_artifact_bytes(pkg)
+rc.upload_blob(base, artifact_digest, artifact_bytes)
 source = None
 if mode == "github" and repo_url:
     source = {"type": "git", "url": repo_url, "tag": tag}
@@ -267,9 +277,10 @@ out = rc.publish_version(
     tree_digest=f"sha256:{tree}",
     proof_digest=proof,
     coverage_pct=float(cov),
+    artifact_digest=artifact_digest,
     source=source,
 )
-print(f"lip publish: registry HTTP {name}@{ver} -> {out.get('index_url', base)}")
+print(f"lip publish: registry HTTP {name}@{ver} -> {out.get('index_url', base)} (blob {artifact_digest[:20]}…)")
 PY
       exit 0
     fi
