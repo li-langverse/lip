@@ -1,6 +1,6 @@
 [toolchain]
 lic_repo = "https://github.com/li-langverse/lic"
-lic_version = "0.1.0"
+lic_version = "studio-ui-ux-progress"
 lit_repo = "https://github.com/li-langverse/lit"
 lit_version = "0.0.1"
 
