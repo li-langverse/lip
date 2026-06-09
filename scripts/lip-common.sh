@@ -61,6 +61,29 @@ lip_proof_digest() {
   echo "sha256:$vc"
 }
 
+# True for remote hosted git remotes (https/http/git@/ssh). Rejects local paths and file://.
+lip_is_hosted_git_url() {
+  case "$1" in
+    https://*|http://*|git@*|ssh://*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Apply credentials for known hosts; public hosted repos clone without tokens.
+lip_git_auth_for_url() {
+  local url="$1"
+  lip_is_hosted_git_url "$url" || {
+    echo "lip: git URL must be a hosted remote (https://, http://, git@, ssh://): $url" >&2
+    return 1
+  }
+  if [[ "$url" == *gitlab.lilangverse.xyz* && -n "${GITLAB_TOKEN:-}" ]]; then
+    git config --global url."https://oauth2:${GITLAB_TOKEN}@gitlab.lilangverse.xyz/".insteadOf "https://gitlab.lilangverse.xyz/" 2>/dev/null || true
+  elif [[ "$url" == *github.com* && -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
+    local gh="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+    git config --global url."https://x-access-token:${gh}@github.com/".insteadOf "https://github.com/" 2>/dev/null || true
+  fi
+}
+
 lip_install_deps() {
   local pkg="$1" lic="$2"
   mkdir -p "$pkg/.li/vendor"
@@ -70,6 +93,7 @@ lip_install_deps() {
     if [[ "$kind" == path ]]; then
       cp -R "$src" "$dst"
     elif [[ "$kind" == git ]]; then
+      lip_git_auth_for_url "$src"
       mkdir -p "$dst"
       if [[ -d "$dst/.git" ]]; then
         git -C "$dst" fetch --depth 1 origin 2>/dev/null || true

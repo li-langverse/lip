@@ -1,15 +1,15 @@
 # Registry
 
-## v1 — GitHub-first (today)
+## v1 — Hosted git (today)
 
-There is **no central registry server** in production yet. Publishing is **GitHub-based**:
+There is **no central registry server** in production yet. Publishing records a **hosted git** source:
 
-1. Push your package to a GitHub repo (`[package.repository].url` in `li.toml`).
-2. Run `lip publish` (or `lip publish --github`) after `lic build` + `lit test --coverage`.
+1. Push your package to any hosted git remote (`[package.repository].url` in `li.toml` — `https://`, `git@`, or `ssh://`).
+2. Run `lip publish` (or `lip publish --git`) after `lic build` + `lit test --coverage`.
 3. `lip` records metadata in **`lip/registry/index.json`** with a **`source: { type: "git", url, tag }`** pointer (for discoverability).
-4. If `gh` is authenticated, `lip publish` also creates a **GitHub Release** tag `v{version}` on the package repo.
+4. If the URL is on **github.com** and `gh` is authenticated, `lip publish` also creates a **GitHub Release** tag `v{version}` on the package repo.
 
-Consumers use **`lip add NAME git=https://github.com/org/pkg --tag v0.1.0`** or path deps for monorepos.
+Consumers use **`lip add NAME git=https://host/org/pkg --tag v0.1.0`** (GitHub, GitLab, Codeberg, etc.) or path deps for monorepos.
 
 ## Local filesystem index
 
@@ -36,7 +36,7 @@ The **v2 central registry** stores the index in **lidb** (Li-native Postgres-sha
 
 Active versions are exposed through the `registry_active_versions` view (non-yanked, non-blocklisted).
 
-**`lip publish` (registry mode, future):** after local gates pass, POST `PublishRequest` to the registry API (see OpenAPI). Until the server ships, use `--registry PATH` or `--github`.
+**`lip publish` (registry mode, future):** after local gates pass, POST `PublishRequest` to the registry API (see OpenAPI). Until the server ships, use `--registry PATH` or `--git`.
 
 ### Automated lis registry E2E (PH-DB-4 gap #4)
 
@@ -118,4 +118,4 @@ LIP_REGISTRY_PRODUCTION_URL=https://registry.li-langverse.example \
 
 Checks `registry_client.normalize_base_url`, OpenAPI `servers[]`, and `lip publish --registry URL --dry-run` against the placeholder host. Host deploy steps: [lis `docs/production-registry.md`](https://github.com/li-langverse/lis/blob/main/docs/production-registry.md); ecosystem checklist [roadmap `ph-db-status.md` §5](https://github.com/li-langverse/roadmap/blob/main/docs/ecosystem/ph-db-status.md).
 
-Until the **lis** registry service ships in production, use **GitHub-first** publish (`lip publish --github`) or filesystem `--registry PATH`; the schema, OpenAPI, and HTTP client are the contract for **tier_db_registry** benchmarks.
+Until the **lis** registry service ships in production, use **hosted-git** publish (`lip publish --git`) or filesystem `--registry PATH`; the schema, OpenAPI, and HTTP client are the contract for **tier_db_registry** benchmarks.

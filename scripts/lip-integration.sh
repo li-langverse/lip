@@ -22,9 +22,10 @@ echo "==> path_consumer lip install + build"
 echo "==> lip lock + publish dry-run"
 (cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" lock && "$ROOT/scripts/lip" publish --dry-run)
 
-echo "==> lip publish (github index metadata)"
+echo "==> lip publish (hosted git index metadata)"
+(cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --dry-run --git)
+(cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --git)
 (cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --dry-run --github)
-(cd "$ROOT/fixtures/pkg_ok" && "$ROOT/scripts/lip" publish --github)
 grep -q '"type": "git"' "$ROOT/registry/index.json"
 
 echo "==> lip publish to local registry (filesystem path)"
