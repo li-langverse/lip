@@ -1,0 +1,13 @@
+[package]
+name = "demo-app"
+version = "0.1.0"
+edition = "2026"
+license = "Apache-2.0 OR MIT"
+description = "Example Li app — lip install like Python venv + pip"
+
+[dependencies]
+# Path dep (monorepo / local dev) — like pip install -e ../pkg
+pkg_ok = { path = "../../fixtures/pkg_ok" }
+
+[package.metadata.lip]
+min_coverage = 80

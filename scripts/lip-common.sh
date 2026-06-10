@@ -70,6 +70,40 @@ lip_is_hosted_git_url() {
 }
 
 # Apply credentials for known hosts; public hosted repos clone without tokens.
+lip_registry_base_url() {
+  local url="$1"
+  url="${url%/}"
+  [[ "$url" == */v1 ]] || url="${url}/v1"
+  echo "$url"
+}
+
+# Resolve registry package version to git url + tag (for lip install).
+lip_registry_resolve_git() {
+  local base="$1" name="$2" ver="$3"
+  base="$(lip_registry_base_url "$base")"
+  python3 - "$base" "$name" "$ver" <<'PY'
+import json, sys, urllib.request
+base, name, ver = sys.argv[1:4]
+url = f"{base}/packages/{name}/{ver}"
+with urllib.request.urlopen(url, timeout=30) as r:
+    pkg = json.loads(r.read().decode())
+src = pkg.get("source") or {}
+if src.get("type") == "git" and src.get("url"):
+    tag = src.get("tag") or f"v{ver}"
+    print(src["url"])
+    print(tag)
+    sys.exit(0)
+# Blob-only publish: consumer clones via git if publisher recorded source elsewhere
+for s in pkg.get("sources") or []:
+    if s.get("type") == "git" and s.get("url"):
+        print(s["url"])
+        print(s.get("tag") or f"v{ver}")
+        sys.exit(0)
+print(f"lip: registry {name}@{ver} has no git source (blob-only); publish with --git or lip add git=URL", file=sys.stderr)
+sys.exit(1)
+PY
+}
+
 lip_git_auth_for_url() {
   local url="$1"
   lip_is_hosted_git_url "$url" || {

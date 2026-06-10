@@ -10,7 +10,7 @@ usage() {
 lip — Li package manager
 
   lip init NAME [--kind library|binary] [--workspace DIR]
-  lip add NAME {path=PATH | git=URL [--tag TAG]}
+  lip add NAME {path=PATH | git=URL [--tag TAG] | registry=URL [--version VER]}
   lip install [--locked]
   lip build
   lip update
@@ -144,8 +144,48 @@ t = t.rstrip() + "\n" + line
 p.write_text(t)
 PY
       echo "lip add: $name -> git $url${tag:+ @ $tag}"
+    elif [[ "$spec" == registry=* ]]; then
+      reg="${spec#registry=}"
+      ver=""
+      shift
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --version) ver="$2"; shift 2 ;;
+          *) echo "lip add: unknown $1" >&2; exit 1 ;;
+        esac
+      done
+      if [[ "$reg" == */*@* ]]; then
+        ver="${reg##*@}"
+        reg="${reg%@*}"
+        name_part="${reg##*/}"
+        reg="${reg%/*}"
+        name="$name_part"
+      fi
+      if [[ -z "$ver" ]]; then
+        echo "lip add registry: set --version VER or use registry=BASE/NAME@VERSION" >&2
+        exit 1
+      fi
+      mapfile -t resolved < <(lip_registry_resolve_git "$reg" "$name" "$ver")
+      url="${resolved[0]}"
+      tag="${resolved[1]}"
+      lip_is_hosted_git_url "$url" || { echo "lip add: registry resolved non-hosted URL" >&2; exit 1; }
+      python3 - "$pkg/li.toml" "$name" "$url" "$tag" <<'PY'
+import pathlib, re, sys
+p, name, url, tag = pathlib.Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4]
+t = p.read_text() if p.exists() else ""
+if "[dependencies]" not in t:
+    t += "\n[dependencies]\n"
+t = re.sub(rf'(?m)^{re.escape(name)}\s*=.*\n', '', t)
+line = f'{name} = {{ git = "{url}"'
+if tag:
+    line += f', tag = "{tag}"'
+line += " }\n"
+t = t.rstrip() + "\n" + line
+p.write_text(t)
+PY
+      echo "lip add: $name -> registry $reg @ $ver (git $url${tag:+ @ $tag})"
     else
-      echo "lip add: use path=DIR or git=URL [--tag TAG]" >&2
+      echo "lip add: use path=DIR, git=URL [--tag TAG], or registry=URL [--version VER]" >&2
       exit 1
     fi
     ;;

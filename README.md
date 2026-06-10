@@ -47,7 +47,7 @@ scripts/       # bootstrap + CI
 - **Live handbook:** https://li-langverse.github.io/lip/ (GitHub Pages)
 - Ecosystem tab on [li-language handbook](https://li-langverse.github.io/li-language/ecosystem/lip/)
 - [docs/handbook.md](docs/handbook.md) — cross-links to master plan, provability gaps, benchmarks
-- [docs/lip.md](docs/lip.md) · [docs/lit.md](docs/lit.md) · [docs/registry.md](docs/registry.md)
+- [docs/lip.md](docs/lip.md) · [docs/lit.md](docs/lit.md) · [docs/registry.md](docs/registry.md) · [docs/project-environment.md](docs/project-environment.md) (venv-style project deps)
 
 ## Policy
 
